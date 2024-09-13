@@ -1,4 +1,3 @@
-import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -7,32 +6,29 @@ declare global {
   var signup: () => string;
 }
 
-let mongoDb: any;
-let mongoDbUri: any;
-
 dotenv.config({ path: ".env.test" });
 
-// Before all test suite, create a mock mongodb connection along with
-// a connection string
-beforeAll(async () => {
-  mongoDb = await MongoMemoryServer.create();
-  mongoDbUri = mongoDb.getUri();
+// Connection URL to your MongoDB Docker instance
+const mongoUri = process.env.MONGODB_CONNECTION_STRING!; // Replace with your Docker MongoDB URI
+console.log("Mongo URI: ", mongoUri);
 
-  await mongoose.connect(mongoDbUri, {});
+// Connect to MongoDB before any tests run
+beforeAll(async () => {
+  await mongoose.connect(mongoUri as string);
 });
 
-// Before each test, clear existing mongodb collections
-beforeEach(async () => {
-  const collections = await mongoose.connection.db!.collections();
-
-  for (const collection of collections) {
-    await collection.deleteMany({});
+// Clear the database after each test
+afterEach(async () => {
+  if (mongoose.connection.db) {
+    const collections = await mongoose.connection.db.collections();
+    for (let collection of collections) {
+      await collection.deleteMany({});
+    }
   }
 });
 
-// Close conenction after test suite
+// Disconnect from MongoDB after all tests are complete
 afterAll(async () => {
-  await mongoDb.stop();
   await mongoose.connection.close();
 });
 

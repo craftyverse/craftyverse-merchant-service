@@ -1,20 +1,44 @@
+import { ConflictError } from "@craftyverse-au/craftyverse-common";
 import { Merchant } from "../models/merchant";
 import { MerchantObject } from "../schemas/merchant-request-schema";
+import { LoggingUtils } from "../utils/logging-utils";
 
 export class MerchantService {
-  static async getMerchantByName(merchantName: string) {
+  /**
+   * This function retrieves a merchant by name
+   * @param merchantName
+   * @returns
+   */
+  static async getMerchantByName(
+    merchantName: string
+  ): Promise<MerchantObject | undefined> {
     const existingMerchant = await Merchant.findOne({
       merchantName: merchantName,
     });
 
     if (!existingMerchant) {
-      return null;
+      return undefined;
     }
 
-    return existingMerchant.toJSON();
+    return existingMerchant.toJSON() as MerchantObject;
   }
 
   static async createMerchant(merchant: MerchantObject) {
+    // Check for existing merchant
+    const existingMerchant = await MerchantService.getMerchantByName(
+      merchant.merchantName
+    );
+
+    if (existingMerchant) {
+      const message = "Merchant already exists.";
+      LoggingUtils.logEvent(
+        undefined,
+        "getMerchantByName: Merchant already exists.",
+        "error.txt"
+      );
+      throw new ConflictError(message);
+    }
+
     const newMerchant = Merchant.build({
       merchantType: merchant.merchantType,
       merchantUserId: merchant.merchantUserId,
