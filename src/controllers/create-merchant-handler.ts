@@ -10,6 +10,14 @@ import { MerchantService } from "../services/merchant-service";
 import { AuthenticationUtils } from "../utils/authentication-utils";
 import { LoggingUtils } from "../utils/logging-utils";
 
+/**
+ * Request type: POST
+ * Route: /createmerchant
+ * Description: This function creates a new merchant
+ *
+ * @param req
+ * @param res
+ */
 const createMerchantHandler = asyncHandler(
   async (req: Request, res: Response) => {
     // Verifying user token
@@ -17,6 +25,8 @@ const createMerchantHandler = asyncHandler(
     const decodedToken = await AuthenticationUtils.verifyAuthenticationToken(
       token
     );
+
+    console.log(decodedToken);
 
     if (decodedToken.UserInfo.userEmail !== req.body.merchantOwnerEmail) {
       LoggingUtils.logEvent(

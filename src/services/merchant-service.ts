@@ -1,5 +1,5 @@
 import { ConflictError } from "@craftyverse-au/craftyverse-common";
-import { Merchant } from "../models/merchant";
+import { Merchant, MerchantDocument } from "../models/merchant";
 import { MerchantObject } from "../schemas/merchant-request-schema";
 import { LoggingUtils } from "../utils/logging-utils";
 
@@ -23,7 +23,9 @@ export class MerchantService {
     return existingMerchant.toJSON() as MerchantObject;
   }
 
-  static async createMerchant(merchant: MerchantObject) {
+  static async createMerchant(
+    merchant: MerchantObject
+  ): Promise<MerchantDocument> {
     // Check for existing merchant
     const existingMerchant = await MerchantService.getMerchantByName(
       merchant.merchantName

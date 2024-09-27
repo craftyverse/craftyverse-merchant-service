@@ -25,7 +25,7 @@ interface MerchantModel extends mongoose.Model<MerchantDocument> {
   build(fields: MerchantFields): MerchantDocument;
 }
 
-interface MerchantDocument extends mongoose.Document {
+export interface MerchantDocument extends mongoose.Document {
   merchantType: string;
   merchantUserId: string;
   merchantName: string;

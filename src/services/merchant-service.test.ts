@@ -1,13 +1,16 @@
-import { Merchant } from "../models/merchant";
+import { Merchant, MerchantDocument } from "../models/merchant";
 import { faker } from "@faker-js/faker";
 import { MerchantService } from "./merchant-service";
+import * as testUtils from "../test/test-utility";
+import { ConflictError } from "@craftyverse-au/craftyverse-common";
 
 describe("Merchant Service", () => {
   describe("getMerchantByName", () => {
     const companyName = faker.company.name();
+    let mockMerchant: MerchantDocument;
     beforeAll(async () => {
       // Create A mock merchant
-      const merchant = Merchant.build({
+      mockMerchant = Merchant.build({
         merchantType: "Online",
         merchantUserId: faker.string.uuid(),
         merchantName: companyName,
@@ -29,19 +32,87 @@ describe("Merchant Service", () => {
       });
 
       // Create merchant
-      await merchant.save();
-
-      const foundMerchant = await Merchant.findOne({
-        merchantName: companyName,
-      });
-
-      console.log("Found Merchant: ", foundMerchant);
+      await mockMerchant.save();
     });
 
     it("should return a merchant by name", async () => {
       const merchant = await MerchantService.getMerchantByName(companyName);
 
-      console.log("Merchant: ", merchant);
+      expect(merchant).toBeDefined();
+      expect(merchant).toEqual(mockMerchant.toJSON());
+    });
+
+    it("should return undefined if a merchant does not exist", async () => {
+      const merchant = await MerchantService.getMerchantByName(
+        "Nonexistent Company"
+      );
+
+      expect(merchant).toBeUndefined();
+    });
+  });
+
+  describe("createMerchant", () => {
+    it("should create a new merchant", async () => {
+      const mockMerchant = await testUtils.createMockMerchant();
+      const savedMerchant: MerchantDocument | string =
+        await MerchantService.createMerchant(mockMerchant);
+
+      const merchant = await Merchant.findOne({
+        merchantName: savedMerchant.merchantName,
+      });
+
+      expect(merchant).toBeDefined();
+      expect(merchant?.merchantType).toEqual(mockMerchant.merchantType);
+      expect(merchant?.merchantUserId).toEqual(mockMerchant.merchantUserId);
+      expect(merchant?.merchantName).toEqual(mockMerchant.merchantName);
+      expect(merchant?.merchantDescription).toEqual(
+        mockMerchant.merchantDescription
+      );
+      expect(merchant?.merchantCountry).toEqual(mockMerchant.merchantCountry);
+      expect(merchant?.merchantState).toEqual(mockMerchant.merchantState);
+      expect(merchant?.merchantAddressLine1).toEqual(
+        mockMerchant.merchantAddressLine1
+      );
+      expect(merchant?.merchantAddressLine2).toEqual(
+        mockMerchant.merchantAddressLine2
+      );
+      expect(merchant?.merchantPostCode).toEqual(mockMerchant.merchantPostCode);
+      expect(merchant?.merchantOwnerFirstName).toEqual(
+        mockMerchant.merchantOwnerFirstName
+      );
+      expect(merchant?.merchantOwnerLastName).toEqual(
+        mockMerchant.merchantOwnerLastName
+      );
+      expect(merchant?.merchantOwnerEmail).toEqual(
+        mockMerchant.merchantOwnerEmail
+      );
+      expect(merchant?.merchantOwnerPhone).toEqual(
+        mockMerchant.merchantOwnerPhone
+      );
+      expect(merchant?.merchantOwnerLicenseDocumentUrl).toEqual(
+        mockMerchant.merchantOwnerLicenseDocumentUrl
+      );
+      expect(merchant?.merchantOwnerProofOfAddressDocumentUrl).toEqual(
+        mockMerchant.merchantOwnerProofOfAddressDocumentUrl
+      );
+      expect(merchant?.merchantStoreIndustry).toEqual(
+        mockMerchant.merchantStoreIndustry
+      );
+      expect(merchant?.merchantStoreCurrency).toEqual(
+        mockMerchant.merchantStoreCurrency
+      );
+      expect(merchant?.merchantStoreTimeZone).toEqual(
+        mockMerchant.merchantStoreTimeZone
+      );
+    });
+
+    it("should throw an error if a merchant already exists", async () => {
+      const mockMerchant = await testUtils.createMockMerchant();
+      await MerchantService.createMerchant(mockMerchant);
+
+      await expect(
+        MerchantService.createMerchant(mockMerchant)
+      ).rejects.toThrow("Merchant already exists.");
     });
   });
 });

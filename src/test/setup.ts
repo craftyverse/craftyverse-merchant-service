@@ -10,7 +10,6 @@ dotenv.config({ path: ".env.test" });
 
 // Connection URL to your MongoDB Docker instance
 const mongoUri = process.env.MONGODB_CONNECTION_STRING!; // Replace with your Docker MongoDB URI
-console.log("Mongo URI: ", mongoUri);
 
 // Connect to MongoDB before any tests run
 beforeAll(async () => {
